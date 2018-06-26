@@ -57,4 +57,12 @@ $11
 `}'
 )
 
+dnl DMIC PDM configurations
+define(`MONO_PDM0_MICA', LIST(`', PDM_TUPLES(0, 1, 0, 0, 0, 0, 0)))
+define(`MONO_PDM0_MICB', LIST(`', PDM_TUPLES(0, 0, 1, 0, 0, 0, 0)))
+define(`STEREO_PDM0', LIST(`', PDM_TUPLES(0, 1, 1, 0, 0, 0, 0)))
+define(`STEREO_PDM1', LIST(`', PDM_TUPLES(1, 1, 1, 0, 0, 0, 0)))
+define(`FOUR_CH_PDM0_PDM1',
+	LIST(`', PDM_TUPLES(0, 1, 1, 0, 0, 0, 0), PDM_TUPLES(1, 1, 1, 0, 0, 0, 0)))
+
 divert(0)dnl

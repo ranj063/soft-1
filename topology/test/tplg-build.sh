@@ -41,13 +41,13 @@ function simple_test {
 		TESTS=("${!14}")
 	elif [ $5 == "DMIC" ]
 	then
-		TESTS=("${!15}")
+		TESTS=("${!16}")
 	fi
 	for i in ${TESTS[@]}
 	do
 		if [ $5 == "DMIC" ]
 		then
-			TFILE="$i-dmic$6-$2-$4-$7-48k-$1"
+			TFILE="$i-dmic$6-${15}-$2-$4-$7-$((${14} / 1000))k-$1"
 			echo "M4 pre-processing test $i -> ${TFILE}"
 			m4 ${M4_FLAGS} \
 				-DTEST_PIPE_NAME="$2" \
@@ -63,6 +63,7 @@ function simple_test {
 				-DTEST_DMIC_DUTY_MAX=${12} \
 				-DTEST_PDM_ACTIVE=${13} \
 				-DTEST_DMIC_SAMPLE_RATE=${14} \
+				-DTEST_DMIC_PDM_CONFIG=${15} \
 				$i.m4 > ${TFILE}.conf
 			echo "Compiling test $i -> ${TFILE}.tplg"
 			alsatplg -v 1 -c ${TFILE}.conf -o ${TFILE}.tplg
@@ -212,9 +213,45 @@ simple_test nocodec src "NoCodec" s24le SSP 4 s24le 25 24 2400000 24000000 I2S 0
 # Tone test: Tone component only supports s32le currently
 simple_test codec tone "SSP2-Codec" s32le SSP 2 s16le 20 16 1920000 19200000 I2S 0 TONE_TEST[@]
 
-#DMIC Test
-simple_test nocodec passthrough "DMIC0" s32le DMIC 0 s32le 1 500000 4800000\
-	40 60 1 48000 DMIC_TEST[@]
+# DMIC Test Topologies for APL/GLK
+DMIC_PDM_CONFIGS=(MONO_PDM0_MICA MONO_PDM0_MICB STEREO_PDM0 STEREO_PDM1 FOUR_CH_PDM0_PDM1)
+DMIC_SAMPLE_RATE=(8000 16000 24000 32000 48000 64000 96000)
+DMIC_SAMPLE_FORMATS=(s16le s32le)
+
+# The number of active pdm controllers corresponding to the PDM configs defined above
+function num_pdm_active {
+	case $1 in
+		MONO_PDM0_MICA)
+			echo 1
+			;;
+		MONO_PDM0_MICB)
+			echo 1
+			;;
+		STEREO_PDM0)
+			echo 1
+			;;
+		STEREO_PDM1)
+			echo 1
+			;;
+		*)
+			echo 2
+			;;
+	esac
+}
+
+for pdm in ${DMIC_PDM_CONFIGS[@]}
+do
+	for rate in ${DMIC_SAMPLE_RATE[@]}
+	do
+		for format in ${DMIC_SAMPLE_FORMATS[@]}
+		do
+			pdm_active=$(num_pdm_active $pdm)
+			simple_test nocodec passthrough "DMIC0" $format DMIC 0\
+				$format 1 500000 4800000 40 60 $pdm_active $rate $pdm\
+				DMIC_TEST[@]
+		done
+	done
+done
 
 if [ "$USE_XARGS" == "yes" ]
 then
