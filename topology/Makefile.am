@@ -72,3 +72,8 @@ EXTRA_DIST = \
 	sof-apl-da7219.m4 \
 	sof-glk-da7219.m4 \
 	sof-icl-nocodec.m4
+
+bin_PROGRAMS = tplg_graph
+
+tplg_graph_SOURCES = \
+	parse_topology.c
